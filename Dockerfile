@@ -1,0 +1,26 @@
+FROM golang:1.22 AS build-stage
+
+WORKDIR /app
+
+COPY go.mod go.sum /app/
+
+RUN go mod download
+
+COPY *.go ./ /app/
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /chat-app
+
+# Run tests
+FROM build-stage AS run-test-stage
+RUN go test -v ./...
+
+# Deploy the application binary into a lean image
+FROM ubuntu:22.04 AS build-release-stage
+
+WORKDIR /
+
+COPY --from=build-stage /chat-app /chat-app
+
+EXPOSE 8080
+
+CMD ["/chat-app"]
