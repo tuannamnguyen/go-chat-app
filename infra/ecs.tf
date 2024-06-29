@@ -7,6 +7,10 @@ resource "aws_ecs_service" "app" {
   cluster         = aws_ecs_cluster.chat_app_cluster.id
   task_definition = aws_ecs_task_definition.chat_app_task_definition.id
   launch_type     = "FARGATE"
+  network_configuration {
+    subnets         = [aws_subnet.chat_app_subnet.id]
+    security_groups = [aws_security_group.chat_app_security_group.id]
+  }
 }
 
 resource "aws_ecs_task_definition" "chat_app_task_definition" {
