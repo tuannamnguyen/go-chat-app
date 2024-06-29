@@ -2,11 +2,12 @@ resource "aws_ecs_cluster" "chat_app_cluster" {
   name = "chat_app_cluster"
 }
 
-resource "aws_ecs_service" "app" {
-  name            = "chat_app_service"
-  cluster         = aws_ecs_cluster.chat_app_cluster.id
-  task_definition = aws_ecs_task_definition.chat_app_task_definition.id
-  launch_type     = "FARGATE"
+resource "aws_ecs_service" "chat_app_service" {
+  name                 = "chat_app_service"
+  cluster              = aws_ecs_cluster.chat_app_cluster.id
+  task_definition      = aws_ecs_task_definition.chat_app_task_definition.id
+  launch_type          = "FARGATE"
+  force_new_deployment = true
   network_configuration {
     subnets         = [aws_subnet.chat_app_subnet.id]
     security_groups = [aws_security_group.chat_app_security_group.id]
@@ -32,3 +33,5 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
     }
   ])
 }
+
+
