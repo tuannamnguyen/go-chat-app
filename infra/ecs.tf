@@ -8,6 +8,7 @@ resource "aws_ecs_service" "chat_app_service" {
   task_definition      = aws_ecs_task_definition.chat_app_task_definition.id
   launch_type          = "FARGATE"
   force_new_deployment = true
+  desired_count = 1
   network_configuration {
     subnets         = [aws_subnet.chat_app_subnet.id]
     security_groups = [aws_security_group.chat_app_security_group.id]
