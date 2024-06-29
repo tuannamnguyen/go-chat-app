@@ -2,9 +2,14 @@ resource "aws_vpc" "chat_app_vpc" {
   cidr_block = "10.0.0.0/24"
 }
 
-resource "aws_subnet" "chat_app_subnet" {
+resource "aws_internet_gateway" "chat_app_internet_gateway" {
   vpc_id = aws_vpc.chat_app_vpc.id
-  cidr_block = "10.0.0.0/25"
+}
+
+resource "aws_subnet" "chat_app_subnet" {
+  vpc_id                  = aws_vpc.chat_app_vpc.id
+  cidr_block              = "10.0.0.0/25"
+  map_public_ip_on_launch = true
 }
 
 resource "aws_security_group" "chat_app_security_group" {
