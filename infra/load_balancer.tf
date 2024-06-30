@@ -2,7 +2,7 @@ resource "aws_lb" "chat_app_lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.chat_app_security_group.id]
-  subnets            = [aws_subnet.chat_app_subnet.id]
+  subnets            = [aws_subnet.chat_app_subnet.id, aws_subnet.chat_app_subnet_2.id]
 }
 
 resource "aws_lb_target_group" "chat_app_lb_target_group" {

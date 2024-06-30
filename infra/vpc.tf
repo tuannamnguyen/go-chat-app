@@ -1,5 +1,5 @@
 resource "aws_vpc" "chat_app_vpc" {
-  cidr_block = "10.0.0.0/24"
+  cidr_block = "10.0.0.0/16"
 }
 
 resource "aws_internet_gateway" "chat_app_internet_gateway" {
@@ -20,10 +20,23 @@ resource "aws_route_table_association" "chat_app_table_association" {
   subnet_id      = aws_subnet.chat_app_subnet.id
 }
 
+resource "aws_route_table_association" "chat_app_table_association_2" {
+  route_table_id = aws_route_table.chat_app_vpc_route_table.id
+  subnet_id      = aws_subnet.chat_app_subnet_2.id
+}
+
 resource "aws_subnet" "chat_app_subnet" {
   vpc_id                  = aws_vpc.chat_app_vpc.id
-  cidr_block              = "10.0.0.0/25"
+  cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
+  availability_zone       = "ap-southeast-1a"
+}
+
+resource "aws_subnet" "chat_app_subnet_2" {
+  vpc_id                  = aws_vpc.chat_app_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "ap-southeast-1b"
 }
 
 resource "aws_security_group" "chat_app_security_group" {
