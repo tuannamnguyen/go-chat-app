@@ -10,7 +10,7 @@ resource "aws_ecs_service" "chat_app_service" {
   force_new_deployment = true
   desired_count = 1
   network_configuration {
-    subnets         = [aws_subnet.chat_app_subnet.id]
+    subnets         = [aws_subnet.chat_app_subnet.id, aws_subnet.chat_app_subnet_2.id]
     security_groups = [aws_security_group.chat_app_security_group.id]
   }
 }
