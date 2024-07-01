@@ -44,8 +44,7 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-create-group  = "true"
-          awslogs-group         = "/ecs/chat_app"
+          awslogs-group         = aws_cloudwatch_log_group.chat_app_log_group.name
           awslogs-region        = "ap-southeast-1"
           awslogs-stream-prefix = "ecs_chatapp"
         }
