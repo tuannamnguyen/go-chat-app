@@ -30,6 +30,7 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
   memory                   = 512
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
+  execution_role_arn       = "arn:aws:iam::533267191229:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
   container_definitions = jsonencode([
     {
       name  = "chat_app"
@@ -40,6 +41,15 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
           hostPort      = 8080
         }
       ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-create-group  = "true"
+          awslogs-group         = "/ecs/chat_app"
+          awslogs-region        = "ap-southeast-1"
+          awslogs-stream-prefix = "ecs_chatapp"
+        }
+      }
     }
   ])
 }
