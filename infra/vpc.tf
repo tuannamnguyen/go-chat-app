@@ -46,8 +46,6 @@ resource "aws_vpc_security_group_ingress_rule" "chat_app_ingress_rule" {
 resource "aws_vpc_security_group_egress_rule" "chat_app_egress_rule" {
   security_group_id = aws_security_group.chat_app_security_group.id
 
-  ip_protocol = "tcp"
+  ip_protocol = "-1"
   cidr_ipv4   = "0.0.0.0/0"
-  from_port   = 8080
-  to_port     = 8080
 }
