@@ -30,7 +30,7 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
   memory                   = 512
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  execution_role_arn       = "arn:aws:iam::533267191229:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   container_definitions = jsonencode([
     {
       name  = "chat_app"
