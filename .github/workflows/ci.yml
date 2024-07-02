@@ -69,6 +69,10 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3.1.1
 
+    # Change context directory
+    - name: Change to infra directory
+      run: terraform -chdir=./infra apply
+
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform init
