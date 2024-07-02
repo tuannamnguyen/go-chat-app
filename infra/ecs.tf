@@ -1,5 +1,5 @@
 variable "image_tag" {
-  type = string
+  type    = string
   default = "main"
 }
 
