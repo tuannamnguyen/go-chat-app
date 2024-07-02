@@ -1,3 +1,8 @@
+variable "image_tag" {
+  type = string
+  default = "main"
+}
+
 resource "aws_ecs_cluster" "chat_app_cluster" {
   name = "chat_app_cluster"
 }
@@ -34,7 +39,7 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
   container_definitions = jsonencode([
     {
       name  = "chat_app"
-      image = "tuannamnguyen290602/go-chat-app"
+      image = "tuannamnguyen290602/go-chat-app:${var.image_tag}"
       portMappings = [
         {
           containerPort = 8080
