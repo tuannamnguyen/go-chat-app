@@ -29,8 +29,7 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: tuannamnguyen290602/go-chat-app
-          tags:
-            type=sha
+          tags: type=sha,format=long
 
       - name: Build and push Docker image
         id: push
@@ -41,8 +40,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-    outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
+
 
   terraform:
     name: Plan and apply Terraform
@@ -84,12 +82,12 @@ jobs:
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-      run: terraform plan -input=false
+      run: terraform plan -input=false -var image_tag=sha-${{ github.sha }}
 
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -auto-approve -input=false -var image_tag=${{ needs.push_to_registry.outputs.image_tag }}
+      run: terraform apply -auto-approve -input=false -var image_tag=sha-${{ github.sha }}
 
 
