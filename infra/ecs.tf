@@ -57,5 +57,3 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
     }
   ])
 }
-
-
