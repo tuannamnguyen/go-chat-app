@@ -19,9 +19,11 @@ func setupServer() {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 
+	authController := newAuthController()
+
 	authGroup := e.Group("/auth")
-	authGroup.GET("/login", loginRouteHandler)
-	authGroup.GET("/callback", callbackRouteHandler)
+	authGroup.GET("/login", authController.loginRouteHandler)
+	authGroup.GET("/callback", authController.callbackRouteHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
