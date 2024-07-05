@@ -2,7 +2,10 @@ module github.com/tuannamnguyen/go-chat-app
 
 go 1.22.3
 
-require github.com/labstack/echo/v4 v4.12.0
+require (
+	github.com/labstack/echo/v4 v4.12.0
+	nhooyr.io/websocket v1.8.11
+)
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
