@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -21,14 +24,21 @@ func setupServer(hub *hub) {
 		return c.String(http.StatusOK, "Hello, World!\n")
 	})
 
-	
-	e.GET("/chat/:chat_room/:user_name", hub.chatRoom)
+	e.GET("/chat/:chat_room/:user_name", hub.hubChatRoomHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
 func main() {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		sigChan := make(chan os.Signal, 2)
+		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+		cancel()
+	}()
+
 	hub := newHub(ctx, &wg)
 	setupServer(hub)
+
+	wg.Wait()
 }

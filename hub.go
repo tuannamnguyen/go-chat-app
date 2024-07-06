@@ -23,7 +23,7 @@ func newHub(ctx context.Context, wg *sync.WaitGroup) *hub {
 	}
 }
 
-func (h *hub) chatRoom(c echo.Context) error {
+func (h *hub) hubChatRoomHandler(c echo.Context) error {
 	chatRoom := c.Param("chat_room")
 	userName := c.Param("user_name")
 
