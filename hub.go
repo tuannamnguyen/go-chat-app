@@ -53,16 +53,7 @@ func (h *hub) chatRoom(c echo.Context) error {
 }
 
 func (h *hub) addChatRoom(roomName string) *chatRoom {
-	newChatRoom := &chatRoom{
-		name:       roomName,
-		users:      []*user{},
-		messages:   make(chan message, 100),
-		dropUsers:  make(chan *user, 100),
-		addedUsers: make(chan *user, 100),
-		ctx:        h.ctx,
-		wg:         h.wg,
-	}
-
-	h.rooms[roomName] = newChatRoom
-	return newChatRoom
+	room := newChatRoom(roomName, h.ctx, h.wg)
+	h.rooms[roomName] = room
+	return room
 }

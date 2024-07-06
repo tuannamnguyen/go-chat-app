@@ -16,6 +16,18 @@ type chatRoom struct {
 	wg           *sync.WaitGroup
 }
 
+func newChatRoom(roomName string, ctx context.Context, wg *sync.WaitGroup) *chatRoom {
+	return &chatRoom{
+		name:       roomName,
+		users:      []*user{},
+		messages:   make(chan message, 100),
+		dropUsers:  make(chan *user, 100),
+		addedUsers: make(chan *user, 100),
+		ctx:        ctx,
+		wg:         wg,
+	}
+}
+
 func (c *chatRoom) addUser(user *user) {
 	c.users = append(c.users, user)
 }
@@ -54,12 +66,15 @@ func (c *chatRoom) listenToUser(user *user) {
 		_, msg, err := user.conn.Read(c.ctx)
 		if err == nil {
 			c.messages <- message{
-				bytes: msg,
+				bytes:  msg,
 				author: user,
 			}
-		} 
+		} else {
+			c.dropUsers <- user
+			break
+		}
 	}
-} 
+}
 
 func (c *chatRoom) broadcast() {}
 
