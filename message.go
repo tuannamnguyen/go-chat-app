@@ -10,7 +10,7 @@ type message struct {
 	author *user
 }
 
-func (m message) print() ([]byte, error) {
+func (m message) prepareMsg() ([]byte, error) {
 	buffer := bytes.NewBufferString(m.author.name + ": ")
 	bufLen, _ := buffer.Write(m.bytes)
 

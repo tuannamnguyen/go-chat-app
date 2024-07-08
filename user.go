@@ -26,3 +26,7 @@ func newUser(name string, w http.ResponseWriter, r *http.Request) (*user, error)
 
 	return user, nil
 }
+
+func (u user) String() string {
+	return fmt.Sprintf("user: %v", u.name)
+}

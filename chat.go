@@ -96,14 +96,14 @@ loop:
 
 			usersToSend := c.usersToSend(message.author)
 			log.Printf("broadcasting message to: %v", usersToSend)
-			bytes, err := message.print()
+			bytes, err := message.prepareMsg()
 			if err != nil {
 				for _, user := range usersToSend {
 					user.conn.Write(c.ctx, websocket.MessageText, bytes)
 				}
 				c.messagesRead = append(c.messagesRead, message)
 			} else {
-				log.Print("error building message")
+				log.Printf("error building message: %v, content: %s", err, bytes)
 			}
 		case <-c.ctx.Done():
 			break loop
