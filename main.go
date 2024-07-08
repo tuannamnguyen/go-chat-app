@@ -1,49 +1,50 @@
 package main
 
 import (
-	"log"
+	"context"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
+	"time"
 
-	"github.com/gorilla/sessions"
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
-	"github.com/markbates/goth/providers/google"
+	"github.com/rdbell/echo-pretty-logger"
 )
 
-func setupServer() {
-	e := echo.New()
+var wg sync.WaitGroup
 
-	e.Use(middleware.Logger())
+func setupServer(e *echo.Echo, hub *hub) {
+	e.Use(prettylogger.Logger)
 	e.Use(middleware.Recover())
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!\n")
 	})
 
-	authController := newAuthController()
-	authGroup := e.Group("/auth")
-	authGroup.GET("/login", authController.loginRouteHandler)
-	authGroup.GET("/callback", authController.callbackRouteHandler)
+	e.GET("/chat/:chat_room/:user_name", hub.hubChatRoomHandler)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
+		e.Logger.Fatal("shutting down the server")
+	}
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("can't load .env file")
+	e := echo.New()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer stop()
+
+	hub := newHub(ctx, &wg)
+	go setupServer(e, hub)
+
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
+	<-ctx.Done()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
 	}
 
-	key := "secret-session-key"
-	store := sessions.NewCookieStore([]byte(key))
-	gothic.Store = store
-
-	goth.UseProviders(google.New(os.Getenv("CLIENT_ID"), os.Getenv("CLIENT_SECRET"), os.Getenv("REDIRECT_URL")))
-
-	setupServer()
-
+	wg.Wait()
 }
