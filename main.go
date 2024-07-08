@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
-	"syscall"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -14,9 +14,7 @@ import (
 
 var wg sync.WaitGroup
 
-func setupServer(hub *hub) {
-	e := echo.New()
-
+func setupServer(e *echo.Echo, hub *hub) {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
@@ -26,20 +24,26 @@ func setupServer(hub *hub) {
 
 	e.GET("/chat/:chat_room/:user_name", hub.hubChatRoomHandler)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
+		e.Logger.Fatal("shutting down the server")
+	}
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		sigChan := make(chan os.Signal, 3)
-		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-		<-sigChan
-		cancel()
-	}()
+	e := echo.New()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer stop()
 
 	hub := newHub(ctx, &wg)
-	setupServer(hub)
+	go setupServer(e, hub)
+
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
+	<-ctx.Done()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
+	}
 
 	wg.Wait()
 }
