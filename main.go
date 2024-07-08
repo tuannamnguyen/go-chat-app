@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -28,7 +31,11 @@ func setupServer(hub *hub) {
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	go func() {
+		sigChan := make(chan os.Signal, 2)
+		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+		cancel()
+	}()
 
 	hub := newHub(ctx, &wg)
 	setupServer(hub)
