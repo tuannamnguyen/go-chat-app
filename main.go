@@ -32,8 +32,9 @@ func setupServer(hub *hub) {
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		sigChan := make(chan os.Signal, 2)
-		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+		sigChan := make(chan os.Signal, 3)
+		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		<-sigChan
 		cancel()
 	}()
 
