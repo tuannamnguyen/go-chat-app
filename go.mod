@@ -4,6 +4,7 @@ go 1.22.3
 
 require (
 	github.com/labstack/echo/v4 v4.12.0
+	github.com/rdbell/echo-pretty-logger v1.0.0
 	nhooyr.io/websocket v1.8.11
 )
 

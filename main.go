@@ -10,12 +10,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rdbell/echo-pretty-logger"
 )
 
 var wg sync.WaitGroup
 
 func setupServer(e *echo.Echo, hub *hub) {
-	e.Use(middleware.Logger())
+	e.Use(prettylogger.Logger)
 	e.Use(middleware.Recover())
 
 	e.GET("/", func(c echo.Context) error {

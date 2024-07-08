@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"sync"
 
@@ -38,7 +39,7 @@ func (h *hub) hubChatRoomHandler(c echo.Context) error {
 		room.run()
 	} else {
 		if room.hasUser(userName) {
-			return c.JSON(http.StatusOK, &apiResponse{Data: "User already exists in chat room"})
+			log.Printf("%v already exists in room %v", userName, chatRoom)
 		} else {
 			user, err := newUser(userName, c.Response().Writer, c.Request())
 			if err != nil {
