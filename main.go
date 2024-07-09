@@ -48,13 +48,16 @@ func main() {
 		Endpoint: google.Endpoint,
 	}
 
+	//setup redis
+	redisHandler := newRedisHandler()
+
 	//setup server
 	e := echo.New()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
 	hub := newHub(ctx, &wg)
-	auth := newAuth(ctx, config)
+	auth := newAuth(config, redisHandler)
 	go setupServer(e, hub, auth)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.

@@ -12,14 +12,14 @@ import (
 )
 
 type auth struct {
-	config *oauth2.Config
-	ctx    context.Context
+	config       *oauth2.Config
+	redisHandler *redisHandler
 }
 
-func newAuth(ctx context.Context, config *oauth2.Config) *auth {
+func newAuth(config *oauth2.Config, redisHandler *redisHandler) *auth {
 	return &auth{
-		config: config,
-		ctx:    ctx,
+		config:       config,
+		redisHandler: redisHandler,
 	}
 }
 
@@ -49,13 +49,13 @@ func getUserInformation(ctx context.Context, client *http.Client) (*people.Perso
 
 func (a *auth) callbackHandler(c echo.Context) error {
 	authCode := c.QueryParam("code")
-	token, err := a.config.Exchange(a.ctx, authCode)
+	token, err := a.config.Exchange(c.Request().Context(), authCode)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when exchange auth code: %v", err))
 	}
 
 	apiClient := a.config.Client(c.Request().Context(), token)
-	userInfo, err := getUserInformation(a.ctx, apiClient)
+	userInfo, err := getUserInformation(c.Request().Context(), apiClient)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when get user information: %v", err))
 	}
