@@ -30,3 +30,8 @@ func (r *redisHandler) setUserInfo(ctx context.Context, userID, userName string)
 
 	return nil
 }
+
+func (r *redisHandler) getUserInfo(ctx context.Context, userID string) string {
+	name := r.client.Get(ctx, userID).Val()
+	return name
+}

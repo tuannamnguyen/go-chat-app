@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"golang.org/x/oauth2"
@@ -62,10 +63,20 @@ func (a *auth) callbackHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when get user information: %v", err))
 	}
 
-	err = a.redisHandler.setUserInfo(requestCtx, userInfo.ResourceName, userInfo.Names[0].DisplayName)
+	peopleID := strings.Split(userInfo.ResourceName, "/")[1]
+	err = a.redisHandler.setUserInfo(requestCtx, peopleID, userInfo.Names[0].DisplayName)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when saving user info: %v", err))
 	}
 
-	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_data": userInfo}})
+	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_id": peopleID}})
+}
+
+func (a *auth) getUserName(c echo.Context) error {
+	requestCtx := c.Request().Context()
+	userID := c.Param("user_id")
+
+	userName := a.redisHandler.getUserInfo(requestCtx, userID)
+
+	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_name": userName}})
 }

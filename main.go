@@ -27,8 +27,10 @@ func setupServer(e *echo.Echo, hub *hub, auth *auth) {
 	})
 
 	e.GET("/chat/:chat_room/:user_name", hub.hubChatRoomHandler)
+
 	e.GET("/auth/login", auth.loginHandler)
 	e.GET("/auth/callback", auth.callbackHandler)
+	e.GET("/auth/user/:user_id", auth.getUserName)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
 		e.Logger.Fatal("shutting down the server")
