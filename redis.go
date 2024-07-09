@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"os"
 
 	"github.com/redis/go-redis/v9"
@@ -18,4 +20,13 @@ func newRedisHandler() *redisHandler {
 	})
 
 	return &redisHandler{client: redisClient}
+}
+
+func (r *redisHandler) setUserInfo(ctx context.Context, userID, userName string) error {
+	err := r.client.Set(ctx, userID, userName, 0).Err()
+	if err != nil {
+		return fmt.Errorf("error setting user info in redis: %v", err)
+	}
+
+	return nil
 }

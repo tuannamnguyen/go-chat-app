@@ -48,16 +48,23 @@ func getUserInformation(ctx context.Context, client *http.Client) (*people.Perso
 }
 
 func (a *auth) callbackHandler(c echo.Context) error {
+	requestCtx := c.Request().Context()
+
 	authCode := c.QueryParam("code")
-	token, err := a.config.Exchange(c.Request().Context(), authCode)
+	token, err := a.config.Exchange(requestCtx, authCode)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when exchange auth code: %v", err))
 	}
 
-	apiClient := a.config.Client(c.Request().Context(), token)
-	userInfo, err := getUserInformation(c.Request().Context(), apiClient)
+	apiClient := a.config.Client(requestCtx, token)
+	userInfo, err := getUserInformation(requestCtx, apiClient)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when get user information: %v", err))
+	}
+
+	err = a.redisHandler.setUserInfo(requestCtx, userInfo.ResourceName, userInfo.Names[0].DisplayName)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when saving user info: %v", err))
 	}
 
 	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_data": userInfo}})
