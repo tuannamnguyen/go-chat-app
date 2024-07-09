@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,14 +11,12 @@ import (
 
 type hub struct {
 	rooms map[string]*chatRoom
-	ctx   context.Context
 	wg    *sync.WaitGroup
 }
 
-func newHub(ctx context.Context, wg *sync.WaitGroup) *hub {
+func newHub(wg *sync.WaitGroup) *hub {
 	return &hub{
 		rooms: make(map[string]*chatRoom),
-		ctx:   ctx,
 		wg:    wg,
 	}
 }
@@ -36,7 +33,7 @@ func (h *hub) hubChatRoomHandler(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error creating user to new chat: %v", err))
 		}
 		room.addUser(user)
-		room.run()
+		room.run(c.Request().Context())
 	} else {
 		if room.hasUser(userName) {
 			log.Printf("%v already exists in room %v", userName, chatRoom)
@@ -46,7 +43,7 @@ func (h *hub) hubChatRoomHandler(c echo.Context) error {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error creating user for chat: %v", err))
 			} else {
 				room.addUser(user)
-				room.run()
+				room.run(c.Request().Context())
 			}
 		}
 	}
@@ -54,7 +51,7 @@ func (h *hub) hubChatRoomHandler(c echo.Context) error {
 }
 
 func (h *hub) addChatRoom(roomName string) *chatRoom {
-	room := newChatRoom(roomName, h.ctx, h.wg)
+	room := newChatRoom(roomName, h.wg)
 	h.rooms[roomName] = room
 	return room
 }

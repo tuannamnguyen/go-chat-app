@@ -56,7 +56,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
-	hub := newHub(ctx, &wg)
+	hub := newHub(&wg)
 	auth := newAuth(config, redisHandler)
 	go setupServer(e, hub, auth)
 
