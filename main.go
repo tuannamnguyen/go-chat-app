@@ -13,6 +13,7 @@ import (
 	prettylogger "github.com/rdbell/echo-pretty-logger"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/people/v1"
 )
 
 var wg sync.WaitGroup
@@ -27,6 +28,7 @@ func setupServer(e *echo.Echo, hub *hub, auth *auth) {
 
 	e.GET("/chat/:chat_room/:user_name", hub.hubChatRoomHandler)
 	e.GET("/auth/login", auth.loginHandler)
+	e.GET("/auth/callback", auth.callbackHandler)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
 		e.Logger.Fatal("shutting down the server")
@@ -40,8 +42,8 @@ func main() {
 		ClientSecret: os.Getenv("CLIENT_SECRET"),
 		RedirectURL:  os.Getenv("REDIRECT_URL"),
 		Scopes: []string{
-			"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/userinfo.profile",
+			people.UserinfoProfileScope,
+			people.UserinfoEmailScope,
 		},
 		Endpoint: google.Endpoint,
 	}
@@ -52,7 +54,7 @@ func main() {
 	defer stop()
 
 	hub := newHub(ctx, &wg)
-	auth := newAuth(config)
+	auth := newAuth(ctx, config)
 	go setupServer(e, hub, auth)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
