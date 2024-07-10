@@ -1,0 +1,18 @@
+services:
+  app:
+   build: .
+   ports:
+     - 8080:8080
+   restart: on-failure:3
+   env_file: .env
+   depends_on:
+    redis:
+     restart: true
+     condition: service_started
+
+  redis:
+   image: redis
+   command: redis-server --save 60 1 --loglevel warning
+   restart: on-failure:3
+   ports:
+    - 6379:6379
