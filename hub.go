@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,33 +22,35 @@ func newHub(wg *sync.WaitGroup) *hub {
 	}
 }
 
-func (h *hub) hubChatRoomHandler(c echo.Context) error {
-	chatRoom := c.Param("chat_room")
-	userName := c.Param("user_name")
+func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		chatRoom := c.Param("chat_room")
+		userName := c.Param("user_name")
 
-	room, ok := h.rooms[chatRoom]
-	if !ok {
-		room := h.addChatRoom(chatRoom)
-		user, err := newUser(userName, c.Response().Writer, c.Request())
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error creating user to new chat: %v", err))
-		}
-		room.addUser(user)
-		room.run(c.Request().Context())
-	} else {
-		if room.hasUser(userName) {
-			log.Printf("%v already exists in room %v", userName, chatRoom)
-		} else {
+		room, ok := h.rooms[chatRoom]
+		if !ok {
+			room := h.addChatRoom(chatRoom)
 			user, err := newUser(userName, c.Response().Writer, c.Request())
 			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error creating user for chat: %v", err))
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error creating user to new chat: %v", err))
+			}
+			room.addUser(user)
+			room.run(ctx)
+		} else {
+			if room.hasUser(userName) {
+				log.Printf("%v already exists in room %v", userName, chatRoom)
 			} else {
-				room.addUser(user)
-				room.run(c.Request().Context())
+				user, err := newUser(userName, c.Response().Writer, c.Request())
+				if err != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error creating user for chat: %v", err))
+				} else {
+					room.addUser(user)
+					room.run(ctx)
+				}
 			}
 		}
+		return nil
 	}
-	return nil
 }
 
 func (h *hub) addChatRoom(roomName string) *chatRoom {

@@ -19,7 +19,7 @@ import (
 
 var wg sync.WaitGroup
 
-func setupServer(e *echo.Echo, hub *hub, auth *auth) {
+func setupServer(ctx context.Context, e *echo.Echo, hub *hub, auth *auth) {
 	e.Use(prettylogger.Logger)
 	e.Use(middleware.Recover())
 
@@ -27,7 +27,7 @@ func setupServer(e *echo.Echo, hub *hub, auth *auth) {
 		return c.String(http.StatusOK, "Hello, World!\n")
 	})
 
-	e.GET("/chat/:chat_room/:user_name", hub.hubChatRoomHandler)
+	e.GET("/chat/:chat_room/:user_name", hub.hubChatRoomHandler(ctx))
 
 	e.GET("/auth/login", auth.loginHandler)
 	e.GET("/auth/callback", auth.callbackHandler)
@@ -61,7 +61,7 @@ func main() {
 
 	hub := newHub(&wg)
 	auth := newAuth(config, redisHandler)
-	go setupServer(e, hub, auth)
+	go setupServer(ctx, e, hub, auth)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	<-ctx.Done()
