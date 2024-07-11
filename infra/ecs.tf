@@ -1,6 +1,6 @@
 variable "image_tag" {
   type    = string
-  default = "main"
+  default = "latest"
 }
 
 resource "aws_ecs_cluster" "chat_app_cluster" {
@@ -46,12 +46,46 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
           hostPort      = 8080
         }
       ]
+      dependsOn = [
+        {
+          containerName = "redis"
+          condition     = "START"
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
           awslogs-group         = aws_cloudwatch_log_group.chat_app_log_group.name
           awslogs-region        = "ap-southeast-1"
           awslogs-stream-prefix = "ecs_chatapp"
+        }
+      }
+    },
+    {
+      name      = "redis"
+      image     = "redis"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 6379
+          hostPort      = 6379
+          protocol      = "tcp"
+        }
+      ]
+      command = [
+        "redis-server",
+        "--save",
+        "60",
+        "1",
+        "--loglevel",
+        "warning"
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.chat_app_log_group.name
+          awslogs-region        = "ap-southeast-1"
+          awslogs-stream-prefix = "ecs_redis"
         }
       }
     }
