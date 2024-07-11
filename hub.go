@@ -28,11 +28,12 @@ func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 
 		room, ok := h.rooms[chatRoom]
 		if !ok {
-			room := h.addChatRoom(chatRoom)
 			user, err := newUser(userName, c.Response().Writer, c.Request())
 			if err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error creating user to new chat: %v", err))
 			}
+
+			room := h.addNewChatRoom(chatRoom)
 			room.addUser(user)
 			room.run(ctx)
 		} else {
@@ -52,7 +53,7 @@ func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 	}
 }
 
-func (h *hub) addChatRoom(roomName string) *chatRoom {
+func (h *hub) addNewChatRoom(roomName string) *chatRoom {
 	room := newChatRoom(roomName, h.wg)
 	h.rooms[roomName] = room
 	return room
