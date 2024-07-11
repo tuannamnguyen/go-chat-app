@@ -226,3 +226,5 @@ pip-selfcheck.json
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 .env
+infra/.infracost/pricing.gob
+infra/.infracost/terraform_modules/manifest-5058f1af8388633f609cadb75a75dc9d.json
