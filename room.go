@@ -70,6 +70,7 @@ func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
 		_, msg, err := user.conn.Read(ctx)
 		if err != nil {
 			log.Printf("error while listening to user messages: %v", err)
+			log.Println(ctx.Err())
 			c.dropUsers <- user
 			break
 
