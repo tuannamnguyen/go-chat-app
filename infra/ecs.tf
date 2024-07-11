@@ -52,6 +52,12 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
           condition     = "START"
         }
       ]
+      environmentFiles = [
+        {
+          type  = "s3"
+          value = aws_s3_object.env_file.arn
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -90,4 +96,5 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
       }
     }
   ])
+  depends_on = [aws_s3_object.env_file]
 }
