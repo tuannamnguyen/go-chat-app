@@ -15,10 +15,9 @@ type hub struct {
 	wg    *sync.WaitGroup
 }
 
-func newHub(wg *sync.WaitGroup) *hub {
+func newHub() *hub {
 	return &hub{
 		rooms: make(map[string]*chatRoom),
-		wg:    wg,
 	}
 }
 

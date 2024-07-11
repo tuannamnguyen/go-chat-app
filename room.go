@@ -16,7 +16,6 @@ type chatRoom struct {
 	messagesRead []message
 	addedUsers   chan *user
 	dropUsers    chan *user
-	wg           *sync.WaitGroup
 }
 
 func newChatRoom(roomName string, wg *sync.WaitGroup) *chatRoom {
@@ -26,7 +25,6 @@ func newChatRoom(roomName string, wg *sync.WaitGroup) *chatRoom {
 		messages:   make(chan message, 100),
 		dropUsers:  make(chan *user, 100),
 		addedUsers: make(chan *user, 100),
-		wg:         wg,
 	}
 }
 
@@ -64,7 +62,6 @@ func (c *chatRoom) listen(ctx context.Context) {
 }
 
 func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
-	c.wg.Add(1)
 	for {
 		log.Print("Listening to incoming messages")
 		_, msg, err := user.conn.Read(ctx)
@@ -84,7 +81,6 @@ func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
 }
 
 func (c *chatRoom) broadcast(ctx context.Context) {
-	c.wg.Add(1)
 	log.Println("broadcasting messages")
 
 loop:
@@ -108,8 +104,6 @@ loop:
 			break loop
 		}
 	}
-
-	c.wg.Done()
 }
 
 func (c *chatRoom) usersToSend(author *user) []*user {

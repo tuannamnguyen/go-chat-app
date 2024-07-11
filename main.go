@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -16,8 +15,6 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/people/v1"
 )
-
-var wg sync.WaitGroup
 
 func setupServer(ctx context.Context, e *echo.Echo, hub *hub, auth *auth) {
 	e.Use(prettylogger.Logger)
@@ -59,7 +56,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
-	hub := newHub(&wg)
+	hub := newHub()
 	auth := newAuth(config, redisHandler)
 	go setupServer(ctx, e, hub, auth)
 
@@ -70,6 +67,4 @@ func main() {
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
-
-	wg.Wait()
 }
