@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sync"
 
 	"nhooyr.io/websocket"
 )
@@ -18,7 +17,7 @@ type chatRoom struct {
 	dropUsers    chan *user
 }
 
-func newChatRoom(roomName string, wg *sync.WaitGroup) *chatRoom {
+func newChatRoom(roomName string) *chatRoom {
 	return &chatRoom{
 		name:       roomName,
 		users:      []*user{},
@@ -70,7 +69,6 @@ func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
 			log.Println(ctx.Err())
 			c.dropUsers <- user
 			break
-
 		} else {
 			c.messages <- message{
 				bytes:  msg,
@@ -91,6 +89,7 @@ loop:
 
 			usersToSend := c.usersToSend(message.author)
 			log.Printf("broadcasting message to: %v", usersToSend)
+
 			bytes, err := message.prepareMsg()
 			if err != nil {
 				log.Printf("error building message: %v, content: %s", err, bytes)

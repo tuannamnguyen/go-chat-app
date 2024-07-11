@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/labstack/echo/v4"
 )
 
 type hub struct {
 	rooms map[string]*chatRoom
-	wg    *sync.WaitGroup
 }
 
 func newHub() *hub {
@@ -54,7 +52,7 @@ func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 }
 
 func (h *hub) addNewChatRoom(roomName string) *chatRoom {
-	room := newChatRoom(roomName, h.wg)
+	room := newChatRoom(roomName)
 	h.rooms[roomName] = room
 	return room
 }
