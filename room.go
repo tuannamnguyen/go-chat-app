@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sync"
 
 	"nhooyr.io/websocket"
 )
@@ -16,19 +15,15 @@ type chatRoom struct {
 	messagesRead []message
 	addedUsers   chan *user
 	dropUsers    chan *user
-	ctx          context.Context
-	wg           *sync.WaitGroup
 }
 
-func newChatRoom(roomName string, ctx context.Context, wg *sync.WaitGroup) *chatRoom {
+func newChatRoom(roomName string) *chatRoom {
 	return &chatRoom{
 		name:       roomName,
 		users:      []*user{},
 		messages:   make(chan message, 100),
 		dropUsers:  make(chan *user, 100),
 		addedUsers: make(chan *user, 100),
-		ctx:        ctx,
-		wg:         wg,
 	}
 }
 
@@ -36,10 +31,10 @@ func (c *chatRoom) addUser(user *user) {
 	c.addedUsers <- user
 }
 
-func (c *chatRoom) run() {
-	go c.listen()
-	go c.broadcast()
-	go c.keepUserListUpdated()
+func (c *chatRoom) run(ctx context.Context) {
+	go c.listen(ctx)
+	go c.broadcast(ctx)
+	go c.keepUserListUpdated(ctx)
 }
 
 func (c *chatRoom) hasUser(userName string) bool {
@@ -52,29 +47,28 @@ func (c *chatRoom) hasUser(userName string) bool {
 	return false
 }
 
-func (c *chatRoom) listen() {
+func (c *chatRoom) listen(ctx context.Context) {
 	for {
 		if len(c.users) > 0 {
 			for _, user := range c.users {
 				if !user.listening {
 					user.listening = true
-					go c.listenToUser(user)
+					go c.listenToUser(ctx, user)
 				}
 			}
 		}
 	}
 }
 
-func (c *chatRoom) listenToUser(user *user) {
-	c.wg.Add(1)
+func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
 	for {
 		log.Print("Listening to incoming messages")
-		_, msg, err := user.conn.Read(c.ctx)
+		_, msg, err := user.conn.Read(ctx)
 		if err != nil {
 			log.Printf("error while listening to user messages: %v", err)
+			log.Println(ctx.Err())
 			c.dropUsers <- user
 			break
-
 		} else {
 			c.messages <- message{
 				bytes:  msg,
@@ -84,8 +78,7 @@ func (c *chatRoom) listenToUser(user *user) {
 	}
 }
 
-func (c *chatRoom) broadcast() {
-	c.wg.Add(1)
+func (c *chatRoom) broadcast(ctx context.Context) {
 	log.Println("broadcasting messages")
 
 loop:
@@ -96,21 +89,20 @@ loop:
 
 			usersToSend := c.usersToSend(message.author)
 			log.Printf("broadcasting message to: %v", usersToSend)
+
 			bytes, err := message.prepareMsg()
 			if err != nil {
 				log.Printf("error building message: %v, content: %s", err, bytes)
 			} else {
 				for _, user := range usersToSend {
-					user.conn.Write(c.ctx, websocket.MessageText, bytes)
+					user.conn.Write(ctx, websocket.MessageText, bytes)
 				}
 				c.messagesRead = append(c.messagesRead, message)
 			}
-		case <-c.ctx.Done():
+		case <-ctx.Done():
 			break loop
 		}
 	}
-
-	c.wg.Done()
 }
 
 func (c *chatRoom) usersToSend(author *user) []*user {
@@ -135,25 +127,25 @@ func (c *chatRoom) deleteUser(userToDelete *user) []*user {
 	return c.users
 }
 
-func (c *chatRoom) keepUserListUpdated() {
+func (c *chatRoom) keepUserListUpdated(ctx context.Context) {
 loop:
 	for {
 		select {
 		case user := <-c.addedUsers:
 			c.users = append(c.users, user)
-			c.broadcastMessage([]byte(fmt.Sprintf("%s joined %s\n", user.name, c.name)))
+			c.broadcastMessage(ctx, []byte(fmt.Sprintf("%s joined %s\n", user.name, c.name)))
 		case user := <-c.dropUsers:
 			c.users = c.deleteUser(user)
-			c.broadcastMessage([]byte(fmt.Sprintf("%s left %s\n", user.name, c.name)))
-		case <-c.ctx.Done():
+			c.broadcastMessage(ctx, []byte(fmt.Sprintf("%s left %s\n", user.name, c.name)))
+		case <-ctx.Done():
 			break loop
 		}
 
 	}
 }
 
-func (c *chatRoom) broadcastMessage(msg []byte) {
+func (c *chatRoom) broadcastMessage(ctx context.Context, msg []byte) {
 	for _, user := range c.users {
-		user.conn.Write(c.ctx, websocket.MessageText, msg)
+		user.conn.Write(ctx, websocket.MessageText, msg)
 	}
 }

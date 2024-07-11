@@ -1,5 +1,5 @@
 package main
 
 type apiResponse struct {
-	Data any `json:"data"`
+	Data map[string]any `json:"data"`
 }

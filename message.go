@@ -11,6 +11,7 @@ type message struct {
 }
 
 func (m message) prepareMsg() ([]byte, error) {
+	m.bytes = append(m.bytes, []byte("\n")...)
 	buffer := bytes.NewBufferString(m.author.name + ": ")
 	bufLen, _ := buffer.Write(m.bytes)
 

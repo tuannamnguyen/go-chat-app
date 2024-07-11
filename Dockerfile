@@ -17,6 +17,11 @@ RUN go test -v ./...
 # Deploy the application binary into a lean image
 FROM ubuntu:22.04 AS build-release-stage
 
+# Install CA certificates
+RUN apt-get update \
+    && apt-get install -y ca-certificates \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
 WORKDIR /
 
 COPY --from=build-stage /chat-app /chat-app
