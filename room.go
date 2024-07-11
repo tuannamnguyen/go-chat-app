@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sync"
 
 	"nhooyr.io/websocket"
 )
@@ -16,17 +15,15 @@ type chatRoom struct {
 	messagesRead []message
 	addedUsers   chan *user
 	dropUsers    chan *user
-	wg           *sync.WaitGroup
 }
 
-func newChatRoom(roomName string, wg *sync.WaitGroup) *chatRoom {
+func newChatRoom(roomName string) *chatRoom {
 	return &chatRoom{
 		name:       roomName,
 		users:      []*user{},
 		messages:   make(chan message, 100),
 		dropUsers:  make(chan *user, 100),
 		addedUsers: make(chan *user, 100),
-		wg:         wg,
 	}
 }
 
@@ -64,7 +61,6 @@ func (c *chatRoom) listen(ctx context.Context) {
 }
 
 func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
-	c.wg.Add(1)
 	for {
 		log.Print("Listening to incoming messages")
 		_, msg, err := user.conn.Read(ctx)
@@ -73,7 +69,6 @@ func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
 			log.Println(ctx.Err())
 			c.dropUsers <- user
 			break
-
 		} else {
 			c.messages <- message{
 				bytes:  msg,
@@ -84,7 +79,6 @@ func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
 }
 
 func (c *chatRoom) broadcast(ctx context.Context) {
-	c.wg.Add(1)
 	log.Println("broadcasting messages")
 
 loop:
@@ -95,6 +89,7 @@ loop:
 
 			usersToSend := c.usersToSend(message.author)
 			log.Printf("broadcasting message to: %v", usersToSend)
+
 			bytes, err := message.prepareMsg()
 			if err != nil {
 				log.Printf("error building message: %v, content: %s", err, bytes)
@@ -108,8 +103,6 @@ loop:
 			break loop
 		}
 	}
-
-	c.wg.Done()
 }
 
 func (c *chatRoom) usersToSend(author *user) []*user {

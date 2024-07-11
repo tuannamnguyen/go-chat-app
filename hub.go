@@ -5,20 +5,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/labstack/echo/v4"
 )
 
 type hub struct {
 	rooms map[string]*chatRoom
-	wg    *sync.WaitGroup
 }
 
-func newHub(wg *sync.WaitGroup) *hub {
+func newHub() *hub {
 	return &hub{
 		rooms: make(map[string]*chatRoom),
-		wg:    wg,
 	}
 }
 
@@ -29,11 +26,12 @@ func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 
 		room, ok := h.rooms[chatRoom]
 		if !ok {
-			room := h.addChatRoom(chatRoom)
 			user, err := newUser(userName, c.Response().Writer, c.Request())
 			if err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error creating user to new chat: %v", err))
 			}
+
+			room := h.addNewChatRoom(chatRoom)
 			room.addUser(user)
 			room.run(ctx)
 		} else {
@@ -53,8 +51,8 @@ func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 	}
 }
 
-func (h *hub) addChatRoom(roomName string) *chatRoom {
-	room := newChatRoom(roomName, h.wg)
+func (h *hub) addNewChatRoom(roomName string) *chatRoom {
+	room := newChatRoom(roomName)
 	h.rooms[roomName] = room
 	return room
 }
