@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/dotenv-org/godotenvvault"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	prettylogger "github.com/rdbell/echo-pretty-logger"
@@ -36,6 +38,12 @@ func setupServer(ctx context.Context, e *echo.Echo, hub *hub, auth *auth) {
 }
 
 func main() {
+	//setup .env
+	err := godotenvvault.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	//setup oauth2
 	config := &oauth2.Config{
 		ClientID:     os.Getenv("CLIENT_ID"),
