@@ -3,6 +3,10 @@ variable "image_tag" {
   default = "latest"
 }
 
+variable "dotenv_key" {
+  type = string
+}
+
 resource "aws_ecs_cluster" "chat_app_cluster" {
   name = "chat_app_cluster"
 }
@@ -40,6 +44,12 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
     {
       name  = "chat_app"
       image = "tuannamnguyen290602/go-chat-app:${var.image_tag}"
+      environment = [
+        {
+          name  = "DOTENV_KEY"
+          value = "${var.dotenv_key}"
+        }
+      ]
       portMappings = [
         {
           containerPort = 8080
@@ -50,12 +60,6 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
         {
           containerName = "redis"
           condition     = "START"
-        }
-      ]
-      environmentFiles = [
-        {
-          type  = "s3"
-          value = aws_s3_object.env_file.arn
         }
       ]
       logConfiguration = {
@@ -96,5 +100,4 @@ resource "aws_ecs_task_definition" "chat_app_task_definition" {
       }
     }
   ])
-  depends_on = [aws_s3_object.env_file]
 }
