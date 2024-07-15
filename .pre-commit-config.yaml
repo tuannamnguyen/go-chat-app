@@ -10,8 +10,9 @@ repos:
       rev: v0.5.1
       hooks:
           - id: go-fmt
-          - id: go-vet
           - id: go-mod-tidy
+          - id: golangci-lint
+          - id: go-imports
     - repo: https://github.com/antonbabenko/pre-commit-terraform
       rev: v1.92.0
       hooks:
