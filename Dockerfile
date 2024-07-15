@@ -2,13 +2,11 @@ FROM golang:1.22 AS build-stage
 
 WORKDIR /app
 
-COPY go.mod go.sum /app/
+COPY ./ ./
 
 RUN go mod download
 
-COPY *.go ./ /app/
-
-RUN CGO_ENABLED=0 GOOS=linux go build -o /chat-app
+RUN CGO_ENABLED=0 GOOS=linux go build -C ./cmd/api -o /chat-app
 
 # Run tests
 FROM build-stage AS run-test-stage

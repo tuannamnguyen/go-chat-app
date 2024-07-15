@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"context"
@@ -12,19 +12,19 @@ import (
 	"google.golang.org/api/people/v1"
 )
 
-type auth struct {
+type Auth struct {
 	config       *oauth2.Config
 	redisHandler *redisHandler
 }
 
-func newAuth(config *oauth2.Config, redisHandler *redisHandler) *auth {
-	return &auth{
+func NewAuth(config *oauth2.Config, redisHandler *redisHandler) *Auth {
+	return &Auth{
 		config:       config,
 		redisHandler: redisHandler,
 	}
 }
 
-func (a *auth) loginHandler(c echo.Context) error {
+func (a *Auth) LoginHandler(c echo.Context) error {
 	url := a.config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 
 	return c.JSON(http.StatusOK, &apiResponse{
@@ -48,7 +48,7 @@ func getUserInformation(ctx context.Context, client *http.Client) (*people.Perso
 	return res, nil
 }
 
-func (a *auth) callbackHandler(c echo.Context) error {
+func (a *Auth) CallbackHandler(c echo.Context) error {
 	requestCtx := c.Request().Context()
 
 	authCode := c.QueryParam("code")
@@ -72,7 +72,7 @@ func (a *auth) callbackHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_id": peopleID}})
 }
 
-func (a *auth) getUserName(c echo.Context) error {
+func (a *Auth) GetUserName(c echo.Context) error {
 	requestCtx := c.Request().Context()
 	userID := c.Param("user_id")
 
