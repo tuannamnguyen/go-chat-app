@@ -40,9 +40,9 @@ func setupServer(ctx context.Context, e *echo.Echo, hub *handler.Hub, auth *hand
 
 func main() {
 	//setup .env
-	err := godotenvvault.Load("../../.env")
+	err := godotenvvault.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
 	//setup oauth2

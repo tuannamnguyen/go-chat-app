@@ -23,7 +23,7 @@ RUN apt-get update \
 WORKDIR /
 
 COPY --from=build-stage /chat-app /chat-app
-COPY ./.env.vault /.env.vault
+COPY ./cmd/api/.env.vault /.env.vault
 
 EXPOSE 8080
 
