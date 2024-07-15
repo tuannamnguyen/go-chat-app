@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"context"
@@ -95,7 +95,10 @@ loop:
 				log.Printf("error building message: %v, content: %s", err, bytes)
 			} else {
 				for _, user := range usersToSend {
-					user.conn.Write(ctx, websocket.MessageText, bytes)
+					err := user.conn.Write(ctx, websocket.MessageText, bytes)
+					if err != nil {
+						log.Println(err)
+					}
 				}
 				c.messagesRead = append(c.messagesRead, message)
 			}
@@ -146,6 +149,9 @@ loop:
 
 func (c *chatRoom) broadcastMessage(ctx context.Context, msg []byte) {
 	for _, user := range c.users {
-		user.conn.Write(ctx, websocket.MessageText, msg)
+		err := user.conn.Write(ctx, websocket.MessageText, msg)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }

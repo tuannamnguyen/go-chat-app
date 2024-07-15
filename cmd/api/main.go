@@ -13,12 +13,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	prettylogger "github.com/rdbell/echo-pretty-logger"
+	"github.com/tuannamnguyen/go-chat-app/internal/handler"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/people/v1"
 )
 
-func setupServer(ctx context.Context, e *echo.Echo, hub *hub, auth *auth) {
+func setupServer(ctx context.Context, e *echo.Echo, hub *handler.Hub, auth *handler.Auth) {
 	e.Use(prettylogger.Logger)
 	e.Use(middleware.Recover())
 
@@ -26,11 +27,11 @@ func setupServer(ctx context.Context, e *echo.Echo, hub *hub, auth *auth) {
 		return c.String(http.StatusOK, "Hello, World!\n")
 	})
 
-	e.GET("/chat/:chat_room/:user_name", hub.hubChatRoomHandler(ctx))
+	e.GET("/chat/:chat_room/:user_name", hub.HubChatRoomHandler(ctx))
 
-	e.GET("/auth/login", auth.loginHandler)
-	e.GET("/auth/callback", auth.callbackHandler)
-	e.GET("/auth/user/:user_id", auth.getUserName)
+	e.GET("/auth/login", auth.LoginHandler)
+	e.GET("/auth/callback", auth.CallbackHandler)
+	e.GET("/auth/user/:user_id", auth.GetUserName)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
 		e.Logger.Fatal("shutting down the server")
@@ -41,7 +42,7 @@ func main() {
 	//setup .env
 	err := godotenvvault.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
 	//setup oauth2
@@ -57,15 +58,15 @@ func main() {
 	}
 
 	//setup redis
-	redisHandler := newRedisHandler()
+	redisHandler := handler.NewRedisHandler()
 
 	//setup server
 	e := echo.New()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
-	hub := newHub()
-	auth := newAuth(config, redisHandler)
+	hub := handler.NewHub()
+	auth := handler.NewAuth(config, redisHandler)
 	go setupServer(ctx, e, hub, auth)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
