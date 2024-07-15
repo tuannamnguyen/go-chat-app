@@ -25,3 +25,13 @@ resource "aws_route53_record" "route_to_alb_subdomain" {
   ttl     = 300
   records = [aws_lb.chat_app_lb.dns_name]
 }
+
+resource "porkbun_nameservers" "chat_app_nameservers" {
+  domain = local.domain_name
+  nameservers = [
+    "${aws_route53_zone.chat_app_zone.name_servers.0}",
+    "${aws_route53_zone.chat_app_zone.name_servers.1}",
+    "${aws_route53_zone.chat_app_zone.name_servers.2}",
+    "${aws_route53_zone.chat_app_zone.name_servers.3}",
+  ]
+}
