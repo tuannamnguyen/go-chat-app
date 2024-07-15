@@ -5,11 +5,10 @@ services:
      - 8080:8080
    volumes:
       - type: bind
-        source: .env
+        source: ./cmd/api/.env
         target: /.env
         read_only: true
    restart: on-failure:3
-   env_file: .env
    depends_on:
     redis:
      restart: true

@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"context"
@@ -9,17 +9,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type hub struct {
+type Hub struct {
 	rooms map[string]*chatRoom
 }
 
-func newHub() *hub {
-	return &hub{
+func NewHub() *Hub {
+	return &Hub{
 		rooms: make(map[string]*chatRoom),
 	}
 }
 
-func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
+func (h *Hub) HubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		chatRoom := c.Param("chat_room")
 		userName := c.Param("user_name")
@@ -31,7 +31,7 @@ func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error creating user to new chat: %v", err))
 			}
 
-			room := h.addNewChatRoom(chatRoom)
+			room := h.AddNewChatRoom(chatRoom)
 			room.addUser(user)
 			room.run(ctx)
 		} else {
@@ -51,7 +51,7 @@ func (h *hub) hubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 	}
 }
 
-func (h *hub) addNewChatRoom(roomName string) *chatRoom {
+func (h *Hub) AddNewChatRoom(roomName string) *chatRoom {
 	room := newChatRoom(roomName)
 	h.rooms[roomName] = room
 	return room

@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"context"
@@ -12,7 +12,7 @@ type redisHandler struct {
 	client *redis.Client
 }
 
-func newRedisHandler() *redisHandler {
+func NewRedisHandler() *redisHandler {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_URL"),
 		Password: os.Getenv("REDIS_PASSWORD"),
