@@ -12,7 +12,6 @@ import (
 	"github.com/dotenv-org/godotenvvault"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	prettylogger "github.com/rdbell/echo-pretty-logger"
 	"github.com/tuannamnguyen/go-chat-app/internal/handler"
 	"github.com/tuannamnguyen/go-chat-app/internal/repository"
 
@@ -22,7 +21,6 @@ import (
 )
 
 func setupServer(ctx context.Context, e *echo.Echo, hub *handler.HubService, auth *handler.AuthService) {
-	e.Use(prettylogger.Logger)
 	e.Use(middleware.Recover())
 
 	e.GET("/", func(c echo.Context) error {
