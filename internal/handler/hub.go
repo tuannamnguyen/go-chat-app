@@ -11,29 +11,29 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Hub struct {
-	rooms map[string]*models.ChatRoom
+type HubService struct {
+	hub *models.Hub
 }
 
-func NewHub() *Hub {
-	return &Hub{
-		rooms: make(map[string]*models.ChatRoom),
-	}
+func NewHubService() *HubService {
+	hub := models.NewHub()
+
+	return &HubService{hub}
 }
 
-func (h *Hub) HubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
+func (h *HubService) HubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		chatRoom := c.Param("chat_room")
 		userName := c.Param("user_name")
 
-		room, ok := h.rooms[chatRoom]
+		room, ok := h.hub.Rooms[chatRoom]
 		if !ok {
 			user, err := models.NewUser(userName, c.Response().Writer, c.Request())
 			if err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error creating user to new chat: %v", err))
 			}
 
-			room := h.AddNewChatRoom(chatRoom)
+			room := h.hub.AddNewChatRoom(chatRoom)
 			room.AddUser(user)
 			room.Run(ctx)
 		} else {
@@ -51,10 +51,4 @@ func (h *Hub) HubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 		}
 		return nil
 	}
-}
-
-func (h *Hub) AddNewChatRoom(roomName string) *models.ChatRoom {
-	room := models.NewChatRoom(roomName)
-	h.rooms[roomName] = room
-	return room
 }

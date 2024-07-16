@@ -1,4 +1,4 @@
-package handler
+package repository
 
 import (
 	"context"
@@ -8,21 +8,21 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type redisHandler struct {
+type AuthRepository struct {
 	client *redis.Client
 }
 
-func NewRedisHandler() *redisHandler {
+func NewAuthRepository() *AuthRepository {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_URL"),
 		Password: os.Getenv("REDIS_PASSWORD"),
 		DB:       0,
 	})
 
-	return &redisHandler{client: redisClient}
+	return &AuthRepository{client: redisClient}
 }
 
-func (r *redisHandler) setUserInfo(ctx context.Context, userID, userName string) error {
+func (r *AuthRepository) SetUserInfo(ctx context.Context, userID string, userName string) error {
 	err := r.client.Set(ctx, userID, userName, 0).Err()
 	if err != nil {
 		return fmt.Errorf("error setting user info in redis: %v", err)
@@ -31,7 +31,7 @@ func (r *redisHandler) setUserInfo(ctx context.Context, userID, userName string)
 	return nil
 }
 
-func (r *redisHandler) getUserInfo(ctx context.Context, userID string) string {
+func (r *AuthRepository) GetUserInfo(ctx context.Context, userID string) string {
 	name := r.client.Get(ctx, userID).Val()
 	return name
 }
