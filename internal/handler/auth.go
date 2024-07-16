@@ -23,7 +23,7 @@ type AuthRepository interface {
 	SetUserInfo(ctx context.Context, userID string, userName string) error
 }
 
-func NewAuth(config *oauth2.Config, db AuthRepository) *AuthService {
+func NewAuthService(config *oauth2.Config, db AuthRepository) *AuthService {
 	return &AuthService{
 		config: config,
 		db:     db,
