@@ -14,12 +14,14 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	prettylogger "github.com/rdbell/echo-pretty-logger"
 	"github.com/tuannamnguyen/go-chat-app/internal/handler"
+	"github.com/tuannamnguyen/go-chat-app/internal/repository"
+
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/people/v1"
 )
 
-func setupServer(ctx context.Context, e *echo.Echo, hub *handler.Hub, auth *handler.Auth) {
+func setupServer(ctx context.Context, e *echo.Echo, hub *handler.Hub, auth *handler.AuthService) {
 	e.Use(prettylogger.Logger)
 	e.Use(middleware.Recover())
 
@@ -58,7 +60,7 @@ func main() {
 	}
 
 	//setup redis
-	redisHandler := handler.NewRedisHandler()
+	repository := repository.NewAuthRepository()
 
 	//setup server
 	e := echo.New()
@@ -66,7 +68,7 @@ func main() {
 	defer stop()
 
 	hub := handler.NewHub()
-	auth := handler.NewAuth(config, redisHandler)
+	auth := handler.NewAuth(config, repository)
 	go setupServer(ctx, e, hub, auth)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
