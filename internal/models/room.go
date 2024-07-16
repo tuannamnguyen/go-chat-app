@@ -1,4 +1,4 @@
-package handler
+package models
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"nhooyr.io/websocket"
 )
 
-type chatRoom struct {
+type ChatRoom struct {
 	name         string
 	users        []*user
 	messages     chan message
@@ -17,8 +17,8 @@ type chatRoom struct {
 	dropUsers    chan *user
 }
 
-func newChatRoom(roomName string) *chatRoom {
-	return &chatRoom{
+func NewChatRoom(roomName string) *ChatRoom {
+	return &ChatRoom{
 		name:       roomName,
 		users:      []*user{},
 		messages:   make(chan message, 100),
@@ -27,17 +27,17 @@ func newChatRoom(roomName string) *chatRoom {
 	}
 }
 
-func (c *chatRoom) addUser(user *user) {
+func (c *ChatRoom) AddUser(user *user) {
 	c.addedUsers <- user
 }
 
-func (c *chatRoom) run(ctx context.Context) {
+func (c *ChatRoom) Run(ctx context.Context) {
 	go c.listen(ctx)
 	go c.broadcast(ctx)
 	go c.keepUserListUpdated(ctx)
 }
 
-func (c *chatRoom) hasUser(userName string) bool {
+func (c *ChatRoom) HasUser(userName string) bool {
 	for _, user := range c.users {
 		if user.name == userName {
 			return true
@@ -47,7 +47,7 @@ func (c *chatRoom) hasUser(userName string) bool {
 	return false
 }
 
-func (c *chatRoom) listen(ctx context.Context) {
+func (c *ChatRoom) listen(ctx context.Context) {
 	for {
 		if len(c.users) > 0 {
 			for _, user := range c.users {
@@ -60,7 +60,7 @@ func (c *chatRoom) listen(ctx context.Context) {
 	}
 }
 
-func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
+func (c *ChatRoom) listenToUser(ctx context.Context, user *user) {
 	for {
 		log.Print("Listening to incoming messages")
 		_, msg, err := user.conn.Read(ctx)
@@ -78,7 +78,7 @@ func (c *chatRoom) listenToUser(ctx context.Context, user *user) {
 	}
 }
 
-func (c *chatRoom) broadcast(ctx context.Context) {
+func (c *ChatRoom) broadcast(ctx context.Context) {
 	log.Println("broadcasting messages")
 
 loop:
@@ -108,7 +108,7 @@ loop:
 	}
 }
 
-func (c *chatRoom) usersToSend(author *user) []*user {
+func (c *ChatRoom) usersToSend(author *user) []*user {
 	var result []*user
 	for _, user := range c.users {
 		if user != author {
@@ -119,7 +119,7 @@ func (c *chatRoom) usersToSend(author *user) []*user {
 	return result
 }
 
-func (c *chatRoom) deleteUser(userToDelete *user) []*user {
+func (c *ChatRoom) deleteUser(userToDelete *user) []*user {
 	for i, user := range c.users {
 		if userToDelete == user {
 			result := append(c.users[:i], c.users[i+1:]...)
@@ -130,7 +130,7 @@ func (c *chatRoom) deleteUser(userToDelete *user) []*user {
 	return c.users
 }
 
-func (c *chatRoom) keepUserListUpdated(ctx context.Context) {
+func (c *ChatRoom) keepUserListUpdated(ctx context.Context) {
 loop:
 	for {
 		select {
@@ -147,7 +147,7 @@ loop:
 	}
 }
 
-func (c *chatRoom) broadcastMessage(ctx context.Context, msg []byte) {
+func (c *ChatRoom) broadcastMessage(ctx context.Context, msg []byte) {
 	for _, user := range c.users {
 		err := user.conn.Write(ctx, websocket.MessageText, msg)
 		if err != nil {

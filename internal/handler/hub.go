@@ -6,16 +6,18 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/tuannamnguyen/go-chat-app/internal/models"
+
 	"github.com/labstack/echo/v4"
 )
 
 type Hub struct {
-	rooms map[string]*chatRoom
+	rooms map[string]*models.ChatRoom
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		rooms: make(map[string]*chatRoom),
+		rooms: make(map[string]*models.ChatRoom),
 	}
 }
 
@@ -26,24 +28,24 @@ func (h *Hub) HubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 
 		room, ok := h.rooms[chatRoom]
 		if !ok {
-			user, err := newUser(userName, c.Response().Writer, c.Request())
+			user, err := models.NewUser(userName, c.Response().Writer, c.Request())
 			if err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error creating user to new chat: %v", err))
 			}
 
 			room := h.AddNewChatRoom(chatRoom)
-			room.addUser(user)
-			room.run(ctx)
+			room.AddUser(user)
+			room.Run(ctx)
 		} else {
-			if room.hasUser(userName) {
+			if room.HasUser(userName) {
 				log.Printf("%v already exists in room %v", userName, chatRoom)
 			} else {
-				user, err := newUser(userName, c.Response().Writer, c.Request())
+				user, err := models.NewUser(userName, c.Response().Writer, c.Request())
 				if err != nil {
 					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error creating user for chat: %v", err))
 				} else {
-					room.addUser(user)
-					room.run(ctx)
+					room.AddUser(user)
+					room.Run(ctx)
 				}
 			}
 		}
@@ -51,8 +53,8 @@ func (h *Hub) HubChatRoomHandler(ctx context.Context) echo.HandlerFunc {
 	}
 }
 
-func (h *Hub) AddNewChatRoom(roomName string) *chatRoom {
-	room := newChatRoom(roomName)
+func (h *Hub) AddNewChatRoom(roomName string) *models.ChatRoom {
+	room := models.NewChatRoom(roomName)
 	h.rooms[roomName] = room
 	return room
 }
