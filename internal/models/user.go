@@ -1,4 +1,4 @@
-package handler
+package models
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ type user struct {
 	listening bool
 }
 
-func newUser(name string, w http.ResponseWriter, r *http.Request) (*user, error) {
+func NewUser(name string, w http.ResponseWriter, r *http.Request) (*user, error) {
 	conn, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error create new user: %v", err)

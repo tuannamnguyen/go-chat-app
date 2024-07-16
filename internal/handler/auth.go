@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/tuannamnguyen/go-chat-app/internal/models"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	"google.golang.org/api/people/v1"
@@ -27,7 +28,7 @@ func NewAuth(config *oauth2.Config, redisHandler *redisHandler) *Auth {
 func (a *Auth) LoginHandler(c echo.Context) error {
 	url := a.config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 
-	return c.JSON(http.StatusOK, &apiResponse{
+	return c.JSON(http.StatusOK, &models.ApiResponse{
 		Data: map[string]any{
 			"auth_url": url,
 		},
@@ -69,7 +70,7 @@ func (a *Auth) CallbackHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when saving user info: %v", err))
 	}
 
-	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_id": peopleID}})
+	return c.JSON(http.StatusOK, models.ApiResponse{Data: map[string]any{"user_id": peopleID}})
 }
 
 func (a *Auth) GetUserName(c echo.Context) error {
@@ -78,5 +79,5 @@ func (a *Auth) GetUserName(c echo.Context) error {
 
 	userName := a.redisHandler.getUserInfo(requestCtx, userID)
 
-	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_name": userName}})
+	return c.JSON(http.StatusOK, models.ApiResponse{Data: map[string]any{"user_name": userName}})
 }
