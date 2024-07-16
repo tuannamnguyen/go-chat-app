@@ -7,27 +7,33 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/tuannamnguyen/go-chat-app/internal/models"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	"google.golang.org/api/people/v1"
 )
 
-type Auth struct {
-	config       *oauth2.Config
-	redisHandler *redisHandler
+type AuthService struct {
+	config *oauth2.Config
+	db     AuthRepository
 }
 
-func NewAuth(config *oauth2.Config, redisHandler *redisHandler) *Auth {
-	return &Auth{
-		config:       config,
-		redisHandler: redisHandler,
+type AuthRepository interface {
+	GetUserInfo(ctx context.Context, userID string) string
+	SetUserInfo(ctx context.Context, userID string, userName string) error
+}
+
+func NewAuthService(config *oauth2.Config, db AuthRepository) *AuthService {
+	return &AuthService{
+		config: config,
+		db:     db,
 	}
 }
 
-func (a *Auth) LoginHandler(c echo.Context) error {
+func (a *AuthService) LoginHandler(c echo.Context) error {
 	url := a.config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 
-	return c.JSON(http.StatusOK, &apiResponse{
+	return c.JSON(http.StatusOK, &models.ApiResponse{
 		Data: map[string]any{
 			"auth_url": url,
 		},
@@ -48,7 +54,7 @@ func getUserInformation(ctx context.Context, client *http.Client) (*people.Perso
 	return res, nil
 }
 
-func (a *Auth) CallbackHandler(c echo.Context) error {
+func (a *AuthService) CallbackHandler(c echo.Context) error {
 	requestCtx := c.Request().Context()
 
 	authCode := c.QueryParam("code")
@@ -64,19 +70,19 @@ func (a *Auth) CallbackHandler(c echo.Context) error {
 	}
 
 	peopleID := strings.Split(userInfo.ResourceName, "/")[1]
-	err = a.redisHandler.setUserInfo(requestCtx, peopleID, userInfo.Names[0].DisplayName)
+	err = a.db.SetUserInfo(requestCtx, peopleID, userInfo.Names[0].DisplayName)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error when saving user info: %v", err))
 	}
 
-	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_id": peopleID}})
+	return c.JSON(http.StatusOK, models.ApiResponse{Data: map[string]any{"user_id": peopleID}})
 }
 
-func (a *Auth) GetUserName(c echo.Context) error {
+func (a *AuthService) GetUserName(c echo.Context) error {
 	requestCtx := c.Request().Context()
 	userID := c.Param("user_id")
 
-	userName := a.redisHandler.getUserInfo(requestCtx, userID)
+	userName := a.db.GetUserInfo(requestCtx, userID)
 
-	return c.JSON(http.StatusOK, &apiResponse{Data: map[string]any{"user_name": userName}})
+	return c.JSON(http.StatusOK, models.ApiResponse{Data: map[string]any{"user_name": userName}})
 }

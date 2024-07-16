@@ -5,7 +5,6 @@ go 1.22.3
 require (
 	github.com/dotenv-org/godotenvvault v0.6.0
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/rdbell/echo-pretty-logger v1.0.0
 	github.com/redis/go-redis/v9 v9.5.3
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/api v0.188.0
