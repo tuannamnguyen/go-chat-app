@@ -5,7 +5,16 @@ on:
     branches: [dev, main]
 
 jobs:
-  go_lint_and_test:
+  go_lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v4
+
+    - name: Golangci-lint
+      uses: golangci/golangci-lint-action@v6.0.1
+
+  go_test:
     runs-on: ubuntu-latest
     steps:
     - name: Check out the repo
@@ -13,9 +22,6 @@ jobs:
 
     - name: Setup Go
       uses: actions/setup-go@v5
-
-    - name: Golangci-lint
-      uses: golangci/golangci-lint-action@v6.0.1
 
     - name: Test with the Go CLI
       run: go test -v ./...
