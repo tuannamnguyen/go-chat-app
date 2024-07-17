@@ -1,65 +1,70 @@
-# Project Title
-
-Simple overview of use/purpose.
+# go-chat-app
 
 ## Description
 
-An in-depth paragraph about your project and overview of use.
+A simple realtime chat server in Go.
 
-## Getting Started
+### Key Features
+
+- Real-time messaging using WebSockets
+- Google OAuth2 authentication
+- Scalable cloud deployment with AWS and Terraform
+- Github Actions workflow for CI/CD
 
 ### Dependencies
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+- Local run:
+  - Docker and Docker Compose
+  - [Client ID, Client Secret and Redirect URL for Google OAuth2](https://developers.google.com/identity/protocols/oauth2)
+  - Go
+  - pip + venv for pre-commit (optional)
+
+- Cloud deployment:
+  - An AWS account
+  - Terraform
+  - [Porkbun](https://porkbun.com/) API Key (for DNS configuration)
+  - [dotenv-vault](https://www.dotenv.org/) account
 
 ### Installing
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+- Clone the project
 
-### Executing program
-
-* How to run the program
-* Step-by-step bullets
-
-```
-code blocks for commands
+```sh
+git clone https://github.com/tuannamnguyen/go-chat-app
+cd ./go-chat-app
 ```
 
-## Help
+- Add environment variables to `example.env` file and copy the values to `./cmd/api/.env`
 
-Any advise for common problems or issues.
+### Executing program locally
 
+- Start Docker Compose
+
+```docker
+docker compose up
 ```
-command to run if program contains helper info
+
+- Open Postman (or any equivalent tool) and create a new Websocket connection to `localhost:8080/chat/{chat_room}/{user_name}`
+![alt text](image.png)
+
+- Create a new message
+![alt text](image-1.png)
+
+- See incoming messages
+![alt text](image-2.png)
+
+### Apply Terraform configuration
+
+- Run the following command:
+
+```terraform
+terraform apply -auto-approve -input=false
+       -var image_tag=(tag of the image)
+       -var dotenv_key=(dotenv_key value for desired environment)
+       -var porkbun_api_key=(porkbun api key)
+       -var porkbun_secret_api_key=(porkbun secret api key)
 ```
 
-## Authors
-
-Contributors names and contact info
-
-ex. Dominique Pizzie
-ex. [@DomPizzie](https://twitter.com/dompizzie)
-
-## Version History
-
-* 0.2
-  * Various bug fixes and optimizations
-  * See [commit change]() or See [release history]()
-* 0.1
-  * Initial Release
-
-## License
-
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
-
-## Acknowledgments
-
-Inspiration, code snippets, etc.
-
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+### AWS Deployment Architecture
+![deployment architecture](image-3.png)
+- Note: There is also an Application Load Balancer standing between the Internet Gateway and the subnet not depicted in this image.
