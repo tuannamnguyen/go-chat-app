@@ -25,7 +25,7 @@ func setupServer(ctx context.Context, e *echo.Echo, hub *handler.HubService, aut
 	e.Use(middleware.Logger())
 
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!\n")
+		return c.String(http.StatusOK, "Hello, Nam!\n")
 	})
 
 	e.GET("/chat/:chat_room/:user_name", hub.HubChatRoomHandler(ctx))
