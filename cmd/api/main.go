@@ -22,6 +22,7 @@ import (
 
 func setupServer(ctx context.Context, e *echo.Echo, hub *handler.HubService, auth *handler.AuthService) {
 	e.Use(middleware.Recover())
+	e.Use(middleware.Logger())
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!\n")
